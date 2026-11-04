@@ -1,0 +1,32 @@
+{
+  "name": "king-a",
+  "version": "1.0.0",
+  "description": "King A - an all-in-one Discord server bot",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node scripts/check.js",
+    "test": "node --test test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raidenkapubg-cmd/tbt.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/raidenkapubg-cmd/tbt/issues"
+  },
+  "homepage": "https://github.com/raidenkapubg-cmd/tbt#readme",
+  "dependencies": {
+    "@napi-rs/canvas": "^1.1.0",
+    "an-array-of-english-words": "^2.0.0",
+    "discord.js": "^14.28.1",
+    "dotenv": "^18.0.9",
+    "node-cron": "^4.6.0"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "private": true
+}
