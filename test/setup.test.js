@@ -8,7 +8,7 @@ let nextId = 100000000000000000n;
 const id = () => String(nextId++);
 
 function fakeGuild() {
-  const guild = { id: id(), name: 'Test Server', ownerId: 'owner', sent: [] };
+  const guild = { id: id(), name: 'Test Server', ownerId: 'owner', sent: [], messages: [] };
   const roles = new Collection();
   const channels = new Collection();
   const mkRole = (data) => {
@@ -21,7 +21,7 @@ function fakeGuild() {
   const botRole = mkRole({ name: 'King A', position: 50, managed: true, editable: false });
   const mkChannel = (data) => {
     const ch = {
-      id: id(), deletable: true, parentId: data.parent || null, position: data.position ?? 0, ...data,
+      id: id(), guild, deletable: true, parentId: data.parent || null, position: data.position ?? 0, ...data,
       isTextBased: () => (data.type ?? 0) === ChannelType.GuildText,
       isVoiceBased: () => data.type === ChannelType.GuildVoice,
       edit: async (d) => Object.assign(ch, d),
@@ -29,7 +29,9 @@ function fakeGuild() {
       delete: async () => channels.delete(ch.id),
       send: async (payload) => {
         guild.sent.push({ channel: ch.name, payload });
-        return { id: id(), pin: async () => {}, startThread: async () => {} };
+        const m = { id: id(), reactions: [], pin: async () => {}, startThread: async () => {}, react: async (e) => m.reactions.push(e) };
+        guild.messages.push(m);
+        return m;
       },
       messages: { fetch: async () => new Collection() },
       members: new Collection(),
@@ -91,10 +93,57 @@ test('fresh /setup builds the full server', async () => {
   const posted = guild.sent.map((s) => s.channel);
   for (const name of ['📜・rules', '🎭・self-roles', '👋・welcome', '🛡️・mod-chat']) assert.ok(posted.includes(name), `posted in ${name}`);
   assert.strictEqual(guild.autoModerationRules.rules.length, 2);
+
+  // Reaction-role panels: one message per category with every emoji reacted
+  const panels = Object.entries(g.reactionPanels);
+  assert.strictEqual(panels.length, tpl.selfRoleCategories.length);
+  for (const [msgId, catKey] of panels) {
+    const m = guild.messages.find((x) => x.id === msgId);
+    const cat = tpl.selfRoleCategories.find((c) => c.key === catKey);
+    assert.deepStrictEqual(m.reactions, cat.options.map((o) => o.emoji));
+  }
   assert.strictEqual(guild.settings.verificationLevel, 2);
 
   // Running again in add mode creates nothing new
   const again = await runSetup(guild, { fresh: false });
   assert.strictEqual(again.channelsCreated, 0);
   assert.strictEqual(again.rolesCreated, 0);
+});
+
+test('reaction roles: add, remove, and pick-one swapping', async () => {
+  const store = require('../src/store');
+  const { handle } = require('../src/features/reactionroles');
+  const gid = 'g-react';
+  const g = store.guild(gid);
+  Object.assign(g.roles, { team_pc: 'r-pc', team_mobile: 'r-mob', g_valorant: 'r-valo', g_bgmi: 'r-bgmi' });
+  g.reactionPanels = { 'm-side': 'side', 'm-games': 'games' };
+
+  const has = new Set();
+  const member = { roles: { cache: { has: (id) => has.has(id) }, add: async (r) => has.add(r.id), remove: async (r) => has.delete(r.id) } };
+  const roles = new Map(['r-pc', 'r-mob', 'r-valo', 'r-bgmi'].map((id) => [id, { id }]));
+  const guild = { id: gid, roles: { cache: roles }, channels: { cache: new Map() }, members: { fetch: async () => member } };
+  const removedReactions = [];
+  const mkMsg = (id, emojis) => {
+    const msg = { id, guild, reactions: { cache: [] } };
+    msg.reactions.cache = emojis.map((e) => ({ emoji: { name: e }, users: { remove: async (u) => removedReactions.push(e) } }));
+    return msg;
+  };
+  const side = mkMsg('m-side', ['🖥️', '📱', '🎮', '🏳️']);
+  const games = mkMsg('m-games', ['🎯', '🔫']);
+  const react = (msg, emoji, added) => handle({ partial: false, emoji: { name: emoji }, message: msg, users: { remove: async () => removedReactions.push('stray') } }, { id: 'u1', bot: false }, added);
+
+  await react(games, '🎯', true);
+  await react(games, '🔫', true);
+  assert.ok(has.has('r-valo') && has.has('r-bgmi'), 'multi-pick category keeps both');
+  await react(games, '🎯', false);
+  assert.ok(!has.has('r-valo') && has.has('r-bgmi'), 'unreact removes role');
+
+  await react(side, '🖥', true); // without variation selector, as Discord sometimes sends it
+  assert.ok(has.has('r-pc'));
+  await react(side, '📱', true);
+  assert.ok(has.has('r-mob') && !has.has('r-pc'), 'pick-one category swaps role');
+  assert.ok(removedReactions.includes('🖥️'), 'old reaction removed');
+
+  await react(side, '😂', true);
+  assert.ok(removedReactions.includes('stray'), 'unknown emoji removed');
 });

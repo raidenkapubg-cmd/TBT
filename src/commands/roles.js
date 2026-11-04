@@ -2,7 +2,6 @@ const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('disc
 const config = require('../config');
 const store = require('../store');
 const tpl = require('../setup/template');
-const content = require('../setup/content');
 const { embed, role, channel, log } = require('../util/helpers');
 
 async function onSelect(interaction) {
@@ -68,9 +67,9 @@ const selfroles = {
   async execute(i) {
     const missing = tpl.selfRoleCategories.flatMap((c) => c.options).filter((o) => !role(i.guild, o.key));
     if (missing.length) return i.reply({ content: '❌ Self-roles don\'t exist yet — run `/setup` first (mode **Add** keeps your channels).', flags: MessageFlags.Ephemeral });
-    await i.channel.send(content.selfRolesPanel());
-    await i.channel.send({ content: 'Lost track of what you picked?', components: [content.roleRefreshRow()] });
-    return i.reply({ content: '✅ Posted.', flags: MessageFlags.Ephemeral });
+    await i.reply({ content: '⏳ Posting reaction roles…', flags: MessageFlags.Ephemeral });
+    await require('../features/reactionroles').postPanels(i.channel);
+    return i.editReply({ content: '✅ Posted. Delete the old panel if there was one.' });
   },
 };
 

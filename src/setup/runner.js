@@ -223,8 +223,13 @@ async function postContent(guild, g, report) {
 
   await post('rules', { embeds: content.rulesEmbeds() });
   await post('about', { embeds: content.aboutEmbeds(guild) });
-  await post('self_roles', content.selfRolesPanel());
-  await post('self_roles', { content: 'Lost track of what you picked?', components: [content.roleRefreshRow()] });
+  const selfRoles = get('self_roles');
+  if (selfRoles) {
+    g.reactionPanels = {};
+    await require('../features/reactionroles')
+      .postPanels(selfRoles)
+      .catch((e) => report.warnings.push(`Self-roles: ${e.message}`));
+  }
   await post('welcome', content.welcomeHeader());
   await post('introductions', content.introTemplate(), true);
   await post('lfg_unrated', content.lfgGuide('Valorant unrated'), true);

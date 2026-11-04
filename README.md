@@ -11,7 +11,7 @@ An all-in-one Discord bot that **builds and runs your whole server**: one-comman
 | 🛡️ **Moderation** | `/mod` kick · ban · unban · timeout · warn · warnings · purge · nick, `/channel` create · delete · rename · move · sort · lock · slowmode, `/role` add · remove · create · delete, `/announce`, plus message, leave and server logs. |
 | 🔥 **Banter** | Joins active chats at random for a few messages, replies when mentioned, opt-in personal roasts (**Roast Me** role), comeback battles with voting, hot takes, and a dead-chat reviver. Guardrails: gameplay-only topics, cooldowns, no roasts in a member's first week, backs off when someone's annoyed, `/banter pause` kill switch, and everything is logged. |
 | 👋 **Welcome** | Generated welcome card image with a random funny line, a 👋 Wave counter, an icebreaker button and a link to roles. |
-| 🎭 **Self-roles** | 5 menus: Pick a Side · Main Quest (unlocks game sections) · Gear Check · Vibe Check · Ping Me For. |
+| 🎭 **Self-roles** | Emoji reaction roles, 5 categories: Pick a Side · Main Quest (unlocks game sections) · Gear Check · Vibe Check · Ping Me For. |
 | 🎮 **Games** | `/wordle` (daily + practice, image board), `/fish` (cast, reel, rarities, variants, rods, locations, index), `/trivia`, `/wyr`, `/rps`, `/8ball`, plus counting and word-chain channels and first-to-type races. |
 | 📈 **Progress** | XP and levels with reward roles at 5 / 10 / 20, Insiders area unlocked at level 10, `/rank`, `/leaderboard`, `/daily` streaks, coins, PC vs Mobile `/wars`, a ⭐ hall of fame, and `/award` roles. |
 | 🎁 **Giveaways** | Button entry, extra tickets for higher levels, minimum level and account-age rules, re-roll. |
