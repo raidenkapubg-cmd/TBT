@@ -33,11 +33,26 @@ const roles = [
   { key: 'bot_slayer', name: '🗡️ Bot Slayer', color: 0x95a5a6, hoist: false },
   { key: 'biggest_l', name: '🫠 Biggest L', color: 0x7f8c8d, hoist: false },
 
-  // earned via levels
-  { key: 'legend', name: '💎 Legend', color: 0x9b59b6, hoist: true },
+  // earned via levels (see levelRoles below)
   { key: 'insider', name: `🌟 ${B} Insider`, color: 0xf5b041, hoist: false },
-  { key: 'regular', name: '🔥 Regular', color: 0xe67e22, hoist: true },
-  { key: 'rookie', name: '🌱 Rookie', color: 0x2ecc71, hoist: false },
+  { key: 'lvl_50', name: '🌌 Mythic', color: 0xff4fd8, hoist: true },
+  { key: 'lvl_30', name: '👑 Legend', color: 0xf1c40f, hoist: true },
+  { key: 'lvl_20', name: '💎 Elite', color: 0x9b59b6, hoist: true },
+  { key: 'lvl_15', name: '⚔️ Veteran', color: 0x3498db, hoist: true },
+  { key: 'lvl_10', name: '🔥 Regular', color: 0xe67e22, hoist: true },
+  { key: 'lvl_5', name: '🎯 Rookie', color: 0x2ecc71, hoist: false },
+  { key: 'lvl_1', name: '🌱 Fresh Spawn', color: 0x95a5a6, hoist: false },
+];
+
+// Level ladder: members keep only their highest level role.
+const levelRoles = [
+  { level: 1, key: 'lvl_1' },
+  { level: 5, key: 'lvl_5' },
+  { level: 10, key: 'lvl_10' },
+  { level: 15, key: 'lvl_15' },
+  { level: 20, key: 'lvl_20' },
+  { level: 30, key: 'lvl_30' },
+  { level: 50, key: 'lvl_50' },
 ];
 
 // ---------------------------------------------------------------- self roles
@@ -168,6 +183,7 @@ const categories = [
       { key: 'wars', name: '⚔️・pc-vs-mobile', access: 'public', banter: true, topic: 'The war never ends. /wars for standings.' },
       { key: 'qotd', name: '❓・question-of-the-day', access: 'public', topic: 'A new question every day.' },
       { key: 'hall_of_fame', name: '⭐・hall-of-fame', access: 'readonly', topic: 'Messages with 5+ ⭐ end up here forever.' },
+      { key: 'level_ups', name: '🆙・level-ups', access: 'readonly', topic: 'Level-ups and new roles. Chat to climb — spam earns nothing.' },
       { key: 'bot_commands', name: '🤖・bot-commands', access: 'public', topic: 'Spam commands here.' },
     ],
   },
@@ -231,7 +247,7 @@ const categories = [
   {
     key: 'cat_insiders',
     name: '🌟 INSIDERS',
-    access: { roles: ['insider', 'regular', 'legend'] },
+    access: { roles: ['insider', 'lvl_10', 'lvl_15', 'lvl_20', 'lvl_30', 'lvl_50'] },
     channels: [
       { key: 'insider_lounge', name: '🌟・insider-lounge', topic: 'Unlocked at level 10. Early peeks and priority drops.' },
       { key: 'beta_test', name: '🧪・beta-test', topic: 'Test new stuff early and tell us what you think.' },
@@ -253,7 +269,9 @@ const categories = [
     name: '🛡️ STAFF',
     access: 'staff',
     channels: [
+      { key: 'console', name: '👑・king-a-console', topic: 'Talk to King A in plain English. No @ needed. e.g. "make a trap channel that bans anyone who posts for 7 days"' },
       { key: 'mod_chat', name: '🛡️・mod-chat' },
+      { key: 'reports', name: '🚨・reports', topic: 'Member reports land here with action buttons.' },
       { key: 'server_logs', name: '📜・server-logs' },
       { key: 'message_logs', name: '📜・message-logs' },
       { key: 'leave_logs', name: '📜・leave-logs' },
@@ -266,7 +284,7 @@ const categories = [
 const quietZones = new Set([
   'welcome', 'rules', 'about', 'self_roles', 'announcements', 'drops', 'event_news', 'content',
   'support', 'product_talk', 'feedback', 'reviews', 'registrations', 'brackets', 'hall_of_fame',
-  'counting', 'word_chain', 'mod_chat', 'server_logs', 'message_logs', 'leave_logs', 'bot_logs',
+  'counting', 'word_chain', 'mod_chat', 'console', 'reports', 'level_ups', 'server_logs', 'message_logs', 'leave_logs', 'bot_logs',
 ]);
 
-module.exports = { roles, selfRoleCategories, categories, quietZones, OTHER_GAME_ROLES };
+module.exports = { roles, levelRoles, selfRoleCategories, categories, quietZones, OTHER_GAME_ROLES };

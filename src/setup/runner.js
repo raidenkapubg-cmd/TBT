@@ -19,6 +19,15 @@ function allRoleSpecs() {
 
 async function ensureRoles(guild, g, report) {
   const me = guild.members.me;
+  // Clean up level roles from older versions (replaced by the lvl_* ladder)
+  for (const legacy of ['rookie', 'regular', 'legend']) {
+    const id = g.roles[legacy];
+    if (!id) continue;
+    delete g.roles[legacy];
+    const old = guild.roles.cache.get(id);
+    const reused = tpl.roles.some((r) => r.name === old?.name);
+    if (old && !reused && old.editable) await old.delete('Replaced by new level roles').catch(() => {});
+  }
   const specs = allRoleSpecs();
   const created = [];
   for (const spec of specs) {
@@ -240,6 +249,9 @@ async function postContent(guild, g, report) {
   await post('counting', { content: '🔢 Start counting! The first number is **1**.' });
   await post('word_chain', { content: '🔤 Word chain starts now. First word: **gear** — next word starts with **r**.' });
   await post('mod_chat', content.staffGuide(), true);
+  if (!(await get('console')?.messages.fetch({ limit: 5 }).catch(() => null))?.some((m) => m.author.id === guild.members.me.id)) {
+    await post('console', require('../commands/safety').consoleWelcome(), true);
+  }
 
   g.counting = { current: 0, lastUser: null, best: g.counting?.best || 0 };
   g.wordchain = { lastWord: 'gear', lastUser: null, used: ['gear'] };

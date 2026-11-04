@@ -7,13 +7,16 @@ An all-in-one Discord bot that **builds and runs your whole server**: one-comman
 | Area | Features |
 | --- | --- |
 | 🏗️ **Setup** | `/setup` builds the entire server: categories, channels, permissions, roles, rules, self-roles panel, AutoMod, verification and stats channels. `fresh` mode wipes and rebuilds; `add` mode only fills in what's missing. |
-| 🗣️ **Plain-English admin** | Staff mention the bot: *"@King A remove @user for spam"*, *"create a voice channel called Scrims in Events"*, *"sort the channels"*, *"lock general for 10 minutes"*. Kicks, bans and deletes ask for a confirm click. |
+| 👑 **Console** | A private `#king-a-console` channel: admins type in plain English, no @ needed, and King A does it — channels, settings, permissions, roles, bans, XP, reports, custom channel rules. It remembers the conversation for follow-ups. `/console` creates it on any server. |
+| 🗣️ **Plain-English admin** | Or mention the bot anywhere: *"@King A remove @user for spam"*, *"create a voice channel called Scrims in Events"*, *"sort the channels"*, *"lock general for 10 minutes"*. Kicks, bans and deletes ask for a confirm click. |
 | 🛡️ **Moderation** | `/mod` kick · ban · unban · timeout · warn · warnings · purge · nick, `/channel` create · delete · rename · move · sort · lock · slowmode, `/role` add · remove · create · delete, `/announce`, plus message, leave and server logs. |
+| 🪤 **Channel rules** | Give any channel behaviour: **trap** (anyone who posts is temp-banned for N days, messages wiped, DM'd a rejoin link — catches hacked accounts), media-only, text-only, no links, auto-delete, auto-react, auto-thread, no XP, one post each, level gate. Via the console or `/channelrule`. |
+| 🛡️ **Anti-spam** | Flood detection (timeout), same message across 3+ channels = likely hacked account (wiped + 24h timeout + staff alert), invite-link blocking, temp bans that lift themselves. Members can `/report` users or right-click → **Report message**; reports reach staff with action buttons. |
 | 🔥 **Banter** | Joins active chats at random for a few messages, replies when mentioned, opt-in personal roasts (**Roast Me** role), comeback battles with voting, hot takes, and a dead-chat reviver. Guardrails: gameplay-only topics, cooldowns, no roasts in a member's first week, backs off when someone's annoyed, `/banter pause` kill switch, and everything is logged. |
 | 👋 **Welcome** | Generated welcome card image with a random funny line, a 👋 Wave counter, an icebreaker button and a link to roles. |
 | 🎭 **Self-roles** | Emoji reaction roles, 5 categories: Pick a Side · Main Quest (unlocks game sections) · Gear Check · Vibe Check · Ping Me For. |
 | 🎮 **Games** | `/wordle` (daily + practice, image board), `/fish` (cast, reel, rarities, variants, rods, locations, index), `/trivia`, `/wyr`, `/rps`, `/8ball`, plus counting and word-chain channels and first-to-type races. |
-| 📈 **Progress** | XP and levels with reward roles at 5 / 10 / 20, Insiders area unlocked at level 10, `/rank`, `/leaderboard`, `/daily` streaks, coins, PC vs Mobile `/wars`, a ⭐ hall of fame, and `/award` roles. |
+| 📈 **Progress** | Spam-proof XP (short, repeated or flooded messages earn nothing). Level roles at 1 / 5 / 10 / 15 / 20 / 30 / 50 — members keep only their highest, ladder editable from the console. Insiders unlocked at level 10, `/levels`, `/rank`, `/leaderboard`, `/daily` streaks, coins, PC vs Mobile `/wars`, a ⭐ hall of fame, and `/award` roles. |
 | 🎁 **Giveaways** | Button entry, extra tickets for higher levels, minimum level and account-age rules, re-roll. |
 | ⏰ **Schedule** | Question of the day (6 PM), hot takes (1:30 PM & 8:30 PM), Monday game-night poll, monthly war results, and live member-count channels. |
 

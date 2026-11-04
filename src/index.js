@@ -37,7 +37,7 @@ for (const file of fs.readdirSync(commandDir).filter((f) => f.endsWith('.js'))) 
 client.commands = commands;
 
 // Feature modules (event listeners, schedulers, component handlers)
-const features = ['welcome', 'logs', 'levels', 'banter', 'admin-ai', 'stats', 'tempvc', 'starboard', 'chatgames', 'scheduler', 'reactionroles'];
+const features = ['welcome', 'logs', 'levels', 'banter', 'admin-ai', 'stats', 'tempvc', 'starboard', 'chatgames', 'scheduler', 'reactionroles', 'guard'];
 for (const name of features) {
   const mod = require(`./features/${name}`);
   if (mod.init) mod.init(client);
@@ -67,7 +67,7 @@ client.on(Events.GuildCreate, (guild) => registerCommands(guild));
 // ---------------------------------------------------------------- interaction router
 client.on(Events.InteractionCreate, async (interaction) => {
   try {
-    if (interaction.isChatInputCommand()) {
+    if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
       const cmd = commands.get(interaction.commandName);
       if (cmd) await cmd.execute(interaction);
       return;

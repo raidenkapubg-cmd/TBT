@@ -26,6 +26,12 @@ const mod = {
       s.setName('ban').setDescription('Ban a member').addUserOption((o) => o.setName('user').setDescription('Who').setRequired(true)).addStringOption((o) => o.setName('reason').setDescription('Why'))
         .addIntegerOption((o) => o.setName('delete_days').setDescription('Delete their messages from the last N days (0-7)').setMinValue(0).setMaxValue(7)),
     )
+    .addSubcommand((s) =>
+      s.setName('tempban').setDescription('Ban for some days, then auto-unban (DMs a rejoin link)').addUserOption((o) => o.setName('user').setDescription('Who').setRequired(true))
+        .addIntegerOption((o) => o.setName('days').setDescription('How many days').setRequired(true).setMinValue(1).setMaxValue(365)).addStringOption((o) => o.setName('reason').setDescription('Why'))
+        .addBooleanOption((o) => o.setName('hacked').setDescription('Looks like a hacked account? Adds password/2FA advice to the DM')),
+    )
+    .addSubcommand((s) => s.setName('softban').setDescription('Kick + wipe their last 24h of messages').addUserOption((o) => o.setName('user').setDescription('Who').setRequired(true)).addStringOption((o) => o.setName('reason').setDescription('Why')))
     .addSubcommand((s) => s.setName('unban').setDescription('Unban by user ID').addStringOption((o) => o.setName('user_id').setDescription('User ID').setRequired(true)))
     .addSubcommand((s) =>
       s.setName('timeout').setDescription('Timeout (mute) a member').addUserOption((o) => o.setName('user').setDescription('Who').setRequired(true))
@@ -45,6 +51,8 @@ const mod = {
     const reason = i.options.getString('reason') || undefined;
     if (sub === 'kick') return runAction(i, { type: 'kick', user: user.id, reason });
     if (sub === 'ban') return runAction(i, { type: 'ban', user: user.id, reason, delete_days: i.options.getInteger('delete_days') || 0 });
+    if (sub === 'tempban') return runAction(i, { type: 'tempban', user: user.id, days: i.options.getInteger('days'), reason, hacked: i.options.getBoolean('hacked') });
+    if (sub === 'softban') return runAction(i, { type: 'softban', user: user.id, reason });
     if (sub === 'unban') return runAction(i, { type: 'unban', user_id: i.options.getString('user_id') });
     if (sub === 'timeout') return runAction(i, { type: 'timeout', user: user.id, minutes: i.options.getInteger('minutes'), reason });
     if (sub === 'untimeout') return runAction(i, { type: 'untimeout', user: user.id });

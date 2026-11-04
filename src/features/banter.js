@@ -286,7 +286,13 @@ function init(client) {
     const mentioned = msg.mentions.users.has(client.user.id) && !msg.mentions.everyone;
     const repliedToBot = msg.mentions.repliedUser?.id === client.user.id;
 
-    // Staff talking to the bot → natural-language admin control
+    // The console channel: staff talk to King A in plain English, no @ needed
+    if (g.channels.console && msg.channel.id === g.channels.console) {
+      if (isStaff(msg.member)) await require('./admin-ai').handle(msg, { inConsole: true }).catch((e) => console.error('[console]', e));
+      return;
+    }
+
+    // Staff mentioning the bot anywhere else → natural-language admin control
     if (mentioned && isStaff(msg.member)) {
       const handled = await require('./admin-ai').handle(msg);
       if (handled) return;

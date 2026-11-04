@@ -38,7 +38,6 @@ module.exports = {
     xpMin: 15,
     xpMax: 25,
     cooldownMs: 60 * 1000,
-    rewards: { 5: 'Rookie', 10: 'Regular', 20: 'Legend' },
     insiderLevel: 10,
   },
 };

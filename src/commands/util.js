@@ -13,9 +13,10 @@ const help = {
       .setDescription('Server manager, game host and resident trash-talker.')
       .addFields(
         { name: '🎮 Games', value: '`/wordle` `/fish` `/trivia` `/wyr` `/rps` `/8ball`\nCounting & word-chain channels' },
-        { name: '📈 Progress', value: '`/rank` `/leaderboard` `/daily` `/wars`' },
+        { name: '📈 Progress', value: '`/rank` `/levels` `/leaderboard` `/daily` `/wars`' },
+        { name: '🚩 Safety', value: '`/report` someone, or right-click a message → Apps → **Report message**' },
         { name: '🔥 Banter', value: '`/roastme` (needs Roast Me role) `/hottake`\nMention me or reply to me to chat' },
-        { name: '🛡️ Staff', value: '`/setup` `/mod` `/channel` `/role` `/announce` `/giveaway` `/award` `/selfroles` `/banter`\nOr just tell me: **@King A kick @user for spam**' },
+        { name: '🛡️ Staff', value: '`/setup` `/console` `/mod` `/channel` `/channelrule` `/role` `/announce` `/giveaway` `/award` `/selfroles` `/banter`\nOr type in the console channel in plain English' },
       );
     return i.reply({ embeds: [e], flags: MessageFlags.Ephemeral });
   },

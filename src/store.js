@@ -35,21 +35,36 @@ function markDirty() {
   dirty = true;
 }
 
+const GUILD_DEFAULTS = () => ({
+  channels: {}, // key -> channel id (set by /setup)
+  roles: {}, // key -> role id
+  users: {}, // user id -> profile
+  banter: { paused: false, lastDropIn: {}, backOff: {}, daily: {} },
+  wars: { month: null, points: {} },
+  counting: { current: 0, lastUser: null, best: 0 },
+  wordchain: { lastWord: null, lastUser: null, used: [] },
+  starboard: {},
+  giveaways: {},
+  tempVcs: {},
+  wordleDaily: {},
+  reactionPanels: {},
+  channelRules: {}, // channel id -> [{ rule, ...options }]
+  tempBans: {}, // user id -> { until, reason }
+  antispam: { enabled: true, blockInvites: true },
+  levelRoles: null, // [{ level, roleId }] — null = use the template ladder
+  console: [], // recent console conversation for context
+  reports: {},
+});
+
 function guild(id) {
   if (!db.guilds[id]) {
-    db.guilds[id] = {
-      channels: {}, // key -> channel id (set by /setup)
-      roles: {}, // key -> role id
-      users: {}, // user id -> profile
-      banter: { paused: false, lastDropIn: {}, backOff: {}, daily: {} },
-      wars: { month: null, points: {} },
-      counting: { current: 0, lastUser: null, best: 0 },
-      wordchain: { lastWord: null, lastUser: null, used: [] },
-      starboard: {},
-      giveaways: {},
-      tempVcs: {},
-      wordleDaily: {},
-    };
+    db.guilds[id] = { ...GUILD_DEFAULTS(), _v2: true };
+    markDirty();
+  } else if (!db.guilds[id]._v2) {
+    // Fill in fields added in newer versions
+    const defaults = GUILD_DEFAULTS();
+    for (const [k, v] of Object.entries(defaults)) if (db.guilds[id][k] === undefined) db.guilds[id][k] = v;
+    db.guilds[id]._v2 = true;
     markDirty();
   }
   return db.guilds[id];
