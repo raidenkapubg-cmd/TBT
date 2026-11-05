@@ -37,7 +37,7 @@ for (const file of fs.readdirSync(commandDir).filter((f) => f.endsWith('.js'))) 
 client.commands = commands;
 
 // Feature modules (event listeners, schedulers, component handlers)
-const features = ['welcome', 'logs', 'levels', 'banter', 'admin-ai', 'stats', 'tempvc', 'starboard', 'chatgames', 'scheduler', 'reactionroles', 'guard'];
+const features = ['welcome', 'logs', 'levels', 'banter', 'admin-ai', 'stats', 'tempvc', 'starboard', 'chatgames', 'scheduler', 'reactionroles', 'guard', 'activities', 'wordletracker'];
 for (const name of features) {
   const mod = require(`./features/${name}`);
   if (mod.init) mod.init(client);

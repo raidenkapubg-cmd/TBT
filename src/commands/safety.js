@@ -197,7 +197,7 @@ const levelsCmd = {
               '**How XP works**',
               '• Chat normally: 15–25 XP per message (+ a bit more for longer messages), max once a minute',
               '• Spam earns **nothing**: short messages, repeated messages, "aaaaa", or 5+ messages in 10s (that also pauses your XP for 5 min)',
-              '• Bonus XP from games, trivia, wordle, daily rewards, hall of fame and events',
+              '• Bonus XP from trivia, chat games, daily rewards, hall of fame and events',
               '• You keep only your highest level role',
             ].join('\n'),
           )

@@ -539,6 +539,25 @@ const handlers = {
     return `🔄 Re-synced level roles for ${n} members`;
   },
 
+  // ------------------------------------------------------------ games
+  async launch_activity(actor, a) {
+    const acts = require('./activities');
+    const voice = a.voice ? resolveChannel(actor.guild, a.voice) : null;
+    const res = await acts.launch(actor.guild, actor, a.game, voice);
+    const text = require('../util/helpers').channel(actor.guild, 'games') || require('../util/helpers').channel(actor.guild, 'general');
+    if (text) await text.send(acts.launchMessage(res, actor.id)).catch(() => {});
+    return `🕹️ Started **${res.activity.name}** in ${res.voice} — join link: ${res.url}`;
+  },
+  async add_activity(actor, a) {
+    const id = String(a.id || '').match(/\d{17,20}/)?.[0];
+    if (!id || !a.name) throw new Error('I need the game name and its application ID.');
+    const g = store.guild(actor.guild.id);
+    g.customActivities = g.customActivities || {};
+    g.customActivities[a.name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30)] = { name: a.name, id, emoji: a.emoji || '🎮', desc: a.desc || '' };
+    store.markDirty();
+    return `🕹️ Added **${a.name}** to the games list`;
+  },
+
   // ------------------------------------------------------------ reports
   async report(actor, a) {
     return require('./reports').build(actor.guild, a);

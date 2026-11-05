@@ -12,7 +12,7 @@ const help = {
       .setTitle('👑 King A')
       .setDescription('Server manager, game host and resident trash-talker.')
       .addFields(
-        { name: '🎮 Games', value: '`/wordle` `/fish` `/trivia` `/wyr` `/rps` `/8ball`\nCounting & word-chain channels' },
+        { name: '🎮 Games', value: '`/wordle` (official) + `/wordlestats` · `/play` Discord games (Putt Party, Sketch Heads, Poker…) · `/trivia` `/wyr` `/rps` `/8ball`\nCounting & word-chain channels' },
         { name: '📈 Progress', value: '`/rank` `/levels` `/leaderboard` `/daily` `/wars`' },
         { name: '🚩 Safety', value: '`/report` someone, or right-click a message → Apps → **Report message**' },
         { name: '🔥 Banter', value: '`/roastme` (needs Roast Me role) `/hottake`\nMention me or reply to me to chat' },
@@ -47,21 +47,24 @@ const leaderboard = {
       o.setName('by').setDescription('Ranking').addChoices(
         { name: 'XP / level', value: 'xp' },
         { name: 'Coins', value: 'coins' },
-        { name: 'Fish caught', value: 'fish' },
-        { name: 'Wordle wins', value: 'wordle' },
+        { name: 'Wordle', value: 'wordle' },
         { name: 'Bot Slayer wins', value: 'slayer' },
       ),
     ),
   async execute(i) {
     const by = i.options.getString('by') || 'xp';
+    if (by === 'wordle') {
+      const rows = require('../features/wordletracker').leaderboardRows(i.guild.id);
+      const medals = ['🥇', '🥈', '🥉'];
+      const text = rows.map((r, n) => `${medals[n] || `**${n + 1}.**`} <@${r.id}> — ${r.wins} wins · avg ${r.avg < 9 ? r.avg.toFixed(2) : '—'} · 🔥 ${r.streak}`).join('\n');
+      return i.reply({ embeds: [embed(0x538d4e).setTitle('🟩 Wordle leaderboard').setDescription(text || 'No results yet. Play `/wordle` and paste your result in the wordle channel!')], allowedMentions: { parse: [] } });
+    }
     const val = {
       xp: (u) => u.xp,
       coins: (u) => u.coins,
-      fish: (u) => u.fish?.caught || 0,
-      wordle: (u) => u.wordle?.won || 0,
       slayer: (u) => u.slayer || 0,
     }[by];
-    const label = { xp: 'XP', coins: '🪙', fish: '🎣', wordle: '🟩 wins', slayer: '🗡️ wins' }[by];
+    const label = { xp: 'XP', coins: '🪙', slayer: '🗡️ wins' }[by];
     const rows = Object.entries(store.guild(i.guild.id).users)
       .map(([id, u]) => ({ id, v: val(u), lvl: u.level }))
       .filter((r) => r.v > 0)
@@ -137,4 +140,14 @@ const serverinfo = {
   },
 };
 
-module.exports = { commands: [help, ping, rank, leaderboard, daily, banterCmd, serverinfo] };
+const wordlestats = {
+  data: new SlashCommandBuilder().setName('wordlestats').setDescription('Your stats from the official Wordle').addUserOption((o) => o.setName('user').setDescription('Someone else')),
+  async execute(i) {
+    const user = i.options.getUser('user') || i.user;
+    const member = await i.guild.members.fetch(user.id).catch(() => null);
+    if (!member) return i.reply({ content: 'Member not found.', flags: MessageFlags.Ephemeral });
+    return i.reply({ embeds: [require('../features/wordletracker').statsEmbed(member)] });
+  },
+};
+
+module.exports = { commands: [help, ping, rank, leaderboard, daily, banterCmd, serverinfo, wordlestats] };

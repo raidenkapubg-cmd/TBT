@@ -59,6 +59,9 @@ Levels:
 - set_level_role {level, role, color}   // role is created if it doesn't exist
 - remove_level_role {level}
 - sync_level_roles {}
+Games (Discord Activities in voice channels):
+- launch_activity {game, voice}   // e.g. Putt Party, Sketch Heads, Poker Night, Chess, SpellCast, Watch Together…
+- add_activity {name, id, emoji}  // add another Discord Activity by its application ID
 Reports:
 - report {kind: "server"|"member"|"warnings"|"bans"|"rules"|"levels", user}
 Rebuild:

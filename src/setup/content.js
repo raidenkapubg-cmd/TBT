@@ -160,12 +160,11 @@ function gamesGuide() {
         .setTitle('🕹️ Arcade')
         .setDescription(
           [
-            '🟩 `/wordle daily` — same word for the whole server, once a day. Keep your streak!',
-            '🟨 `/wordle practice` — unlimited games',
+            '🟩 `/wordle` — Discord\'s official Wordle. Paste your result in the wordle channel for stats & XP',
+            '🕹️ `/play` — start a Discord game (Putt Party, Sketch Heads, Poker, Chess…) in your voice channel',
             '🧠 `/trivia` — gaming & gear trivia, first right answer earns XP',
             '🤔 `/wyr` — would you rather, everyone votes',
             '✊ `/rps` — rock paper scissors vs King A or a friend',
-            '🎣 `/fish cast` — head to the fishing channel',
             '💰 `/daily` — free coins every day, bigger with a streak',
             '📊 `/rank` and `/leaderboard` — flex your level',
           ].join('\n'),
@@ -174,21 +173,20 @@ function gamesGuide() {
   };
 }
 
-function fishingGuide() {
+function wordleGuide() {
   return {
     embeds: [
-      embed(0x1f8acb)
-        .setTitle('🎣 Welcome to the Docks')
+      embed(0x538d4e)
+        .setTitle('🟩 Wordle')
         .setDescription(
           [
-            '`/fish cast` — throw your line. When you see **BITE!**, smash **Reel!** fast.',
-            '`/fish bag` — see your catch',
-            '`/fish sell` — sell everything for coins',
-            '`/fish shop` / `/fish buy` — better rods = rarer fish + more reaction time',
-            '`/fish travel` — new waters with new fish (some need a better rod)',
-            '`/fish index` — how many species you\'ve discovered',
+            '**Play:** type `/wordle` (Discord\'s official Wordle) in any channel, or click 🚀 in a voice channel and pick Wordle.',
+            '**Track:** paste your share result here, e.g.',
+            '```\nWordle 1,234 3/6\n⬛🟨⬛⬛🟩\n🟩🟩⬛🟩🟩\n🟩🟩🟩🟩🟩\n```',
+            'King A logs it automatically and gives XP: **3/6 = 60 XP**, 2/6 = 70, 1/6 = 80 (even a fail gets 10).',
+            'Wordle\'s own daily group recap is counted too.',
             '',
-            'Rarities: ⚪ Common · 🟢 Uncommon · 🔵 Rare · 🟣 Epic · 🟠 Legendary · 🔴 Mythic',
+            '`/wordlestats` — your stats & streak · `/leaderboard by:Wordle` — top players',
           ].join('\n'),
         ),
     ],
@@ -210,6 +208,6 @@ module.exports = {
   lfgGuide,
   staffGuide,
   gamesGuide,
-  fishingGuide,
   roleRefreshRow,
+  wordleGuide,
 };

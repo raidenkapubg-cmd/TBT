@@ -175,6 +175,15 @@ async function guildSettings(guild, g, report) {
     })
     .catch((e) => report.warnings.push(`Server settings: ${e.message}`));
 
+  // Official Discord games (Wordle, Putt Party…) need these on @everyone
+  try {
+    const ev = guild.roles.everyone;
+    const need = [P.UseEmbeddedActivities, P.UseApplicationCommands, P.UseExternalApps].filter(Boolean);
+    if (need.some((p) => !ev.permissions.has(p))) await ev.setPermissions(ev.permissions.add(need), 'Allow Discord Activities & apps');
+  } catch (e) {
+    report.warnings.push(`Activity permissions: ${e.message}`);
+  }
+
   // AutoMod: block slurs / sexual content using Discord's built-in word lists.
   try {
     const rules = await guild.autoModerationRules.fetch();
@@ -245,7 +254,8 @@ async function postContent(guild, g, report) {
   await post('lfg_ranked', content.lfgGuide('Valorant ranked'), true);
   await post('lfg', content.lfgGuide('any game'), true);
   await post('games', content.gamesGuide(), true);
-  await post('fishing', content.fishingGuide(), true);
+  await post('activities', require('../features/activities').panel(guild.id));
+  await post('wordle', content.wordleGuide(), true);
   await post('counting', { content: '🔢 Start counting! The first number is **1**.' });
   await post('word_chain', { content: '🔤 Word chain starts now. First word: **gear** — next word starts with **r**.' });
   await post('mod_chat', content.staffGuide(), true);
@@ -275,6 +285,12 @@ async function runSetup(guild, { fresh, onProgress = async () => {} }) {
 
   await onProgress('🎭 Creating roles…');
   await ensureRoles(guild, g, report);
+  // Channels from older versions that were replaced
+  for (const legacy of ['fishing']) {
+    const ch = g.channels[legacy] && guild.channels.cache.get(g.channels[legacy]);
+    if (ch?.deletable) await ch.delete('Replaced in a newer King A version').catch(() => {});
+    delete g.channels[legacy];
+  }
   await onProgress('🏗️ Building categories and channels…');
   const keep = await ensureChannels(guild, g, report);
   if (fresh) {

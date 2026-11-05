@@ -191,10 +191,13 @@ const categories = [
     key: 'cat_arcade',
     name: '🕹️ ARCADE',
     channels: [
-      { key: 'games', name: '🧩・games', access: 'public', topic: '/wordle  /trivia  /wyr  /rps — have fun.' },
-      { key: 'fishing', name: '🎣・fishing', access: 'public', topic: '/fish cast — catch rare fish, sell them, upgrade your rod.' },
+      { key: 'activities', name: '🕹️・game-room', access: 'readonly', topic: 'Start Discord games (Putt Party, Sketch Heads, Poker…) from the menu here.' },
+      { key: 'wordle', name: '🟩・wordle', access: 'public', topic: 'Play the official Wordle with /wordle, then paste your result here for stats, streaks & XP.' },
+      { key: 'games', name: '🧩・games', access: 'public', topic: '/play  /trivia  /wyr  /rps — have fun.' },
       { key: 'counting', name: '🔢・counting', access: 'public', topic: 'Count up one at a time. No double turns. Mess up = reset.' },
       { key: 'word_chain', name: '🔤・word-chain', access: 'public', topic: 'Next word must start with the last letter of the previous one.' },
+      { key: 'game_room_1', name: '🕹️ Game Room 1', type: V, access: 'public' },
+      { key: 'game_room_2', name: '🕹️ Game Room 2', type: V, access: 'public' },
     ],
   },
   {
@@ -284,7 +287,7 @@ const categories = [
 const quietZones = new Set([
   'welcome', 'rules', 'about', 'self_roles', 'announcements', 'drops', 'event_news', 'content',
   'support', 'product_talk', 'feedback', 'reviews', 'registrations', 'brackets', 'hall_of_fame',
-  'counting', 'word_chain', 'mod_chat', 'console', 'reports', 'level_ups', 'server_logs', 'message_logs', 'leave_logs', 'bot_logs',
+  'counting', 'word_chain', 'activities', 'mod_chat', 'console', 'reports', 'level_ups', 'server_logs', 'message_logs', 'leave_logs', 'bot_logs',
 ]);
 
 module.exports = { roles, levelRoles, selfRoleCategories, categories, quietZones, OTHER_GAME_ROLES };

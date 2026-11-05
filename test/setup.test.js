@@ -18,6 +18,7 @@ function fakeGuild() {
     return r;
   };
   const everyone = mkRole({ id: guild.id, name: '@everyone', position: 0, editable: false });
+  everyone.permissions = { has: () => true };
   const botRole = mkRole({ name: 'King A', position: 50, managed: true, editable: false });
   const mkChannel = (data) => {
     const ch = {
@@ -91,7 +92,7 @@ test('fresh /setup builds the full server', async () => {
   assert.ok(valo.permissionOverwrites.find((o) => o.id === g.roles.g_valorant), 'valorant role can see');
 
   const posted = guild.sent.map((s) => s.channel);
-  for (const name of ['📜・rules', '🎭・self-roles', '👋・welcome', '🛡️・mod-chat']) assert.ok(posted.includes(name), `posted in ${name}`);
+  for (const name of ['📜・rules', '🎭・self-roles', '👋・welcome', '🛡️・mod-chat', '🕹️・game-room']) assert.ok(posted.includes(name), `posted in ${name}`);
   assert.strictEqual(guild.autoModerationRules.rules.length, 2);
 
   // Reaction-role panels: one message per category with every emoji reacted

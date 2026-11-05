@@ -15,7 +15,7 @@ An all-in-one Discord bot that **builds and runs your whole server**: one-comman
 | 🔥 **Banter** | Joins active chats at random for a few messages, replies when mentioned, opt-in personal roasts (**Roast Me** role), comeback battles with voting, hot takes, and a dead-chat reviver. Guardrails: gameplay-only topics, cooldowns, no roasts in a member's first week, backs off when someone's annoyed, `/banter pause` kill switch, and everything is logged. |
 | 👋 **Welcome** | Generated welcome card image with a random funny line, a 👋 Wave counter, an icebreaker button and a link to roles. |
 | 🎭 **Self-roles** | Emoji reaction roles, 5 categories: Pick a Side · Main Quest (unlocks game sections) · Gear Check · Vibe Check · Ping Me For. |
-| 🎮 **Games** | `/wordle` (daily + practice, image board), `/fish` (cast, reel, rarities, variants, rods, locations, index), `/trivia`, `/wyr`, `/rps`, `/8ball`, plus counting and word-chain channels and first-to-type races. |
+| 🎮 **Games** | Discord's **official** games: `/play` (or the 🕹️ Game Room menu) starts Putt Party, Sketch Heads, Poker Night, Chess, SpellCast, Watch Together and more in a voice channel. `/activity add` adds any other Activity by ID. Official **Wordle** is played with its own `/wordle`; paste results in the wordle channel for stats, streaks, XP and `/wordlestats`. Plus `/trivia`, `/wyr`, `/rps`, `/8ball`, counting, word-chain and first-to-type races. |
 | 📈 **Progress** | Spam-proof XP (short, repeated or flooded messages earn nothing). Level roles at 1 / 5 / 10 / 15 / 20 / 30 / 50 — members keep only their highest, ladder editable from the console. Insiders unlocked at level 10, `/levels`, `/rank`, `/leaderboard`, `/daily` streaks, coins, PC vs Mobile `/wars`, a ⭐ hall of fame, and `/award` roles. |
 | 🎁 **Giveaways** | Button entry, extra tickets for higher levels, minimum level and account-age rules, re-roll. |
 | ⏰ **Schedule** | Question of the day (6 PM), hot takes (1:30 PM & 8:30 PM), Monday game-night poll, monthly war results, and live member-count channels. |
@@ -59,7 +59,7 @@ src/
   setup/            server template, posted content, setup builder
   commands/         slash commands
   features/         welcome, logs, levels, banter, admin brain, stats, temp VCs, starboard, schedulers
-  games/            wordle and fishing logic
+  games/            word list for the word-chain channel
   util/             helpers, Groq client, safety filter
 ```
 

@@ -245,7 +245,7 @@ async function onBattleVote(interaction) {
 async function roastMember(member, channel) {
   const u = store.user(member.guild.id, member.id);
   const roleNames = member.roles.cache.filter((r) => r.id !== member.guild.id).map((r) => r.name.replace(/^\S+\s/, '')).slice(0, 12);
-  const facts = `Name: ${member.displayName}. Level ${u.level}, ${u.messages} messages sent, ${u.fish?.caught || 0} fish caught, wordle wins ${u.wordle?.won || 0}/${u.wordle?.played || 0}. Roles: ${roleNames.join(', ') || 'none'}.`;
+  const facts = `Name: ${member.displayName}. Level ${u.level}, ${u.messages} messages sent, daily streak ${u.streak}. Roles: ${roleNames.join(', ') || 'none'}.`;
   const text = await groq.chat([
     { role: 'system', content: persona(member.guild.name) },
     { role: 'user', content: `${member.displayName} asked to be roasted. Use these server stats, roles and game choices for material. Gameplay/setup/server-activity only. ${facts}\nTask: one savage-but-friendly roast, max 2 sentences.` },

@@ -175,7 +175,7 @@ function rankCard(member) {
       { name: 'Messages', value: `${u.messages}`, inline: true },
       { name: 'Coins', value: `🪙 ${u.coins}`, inline: true },
       { name: 'Daily streak', value: `🔥 ${u.streak}`, inline: true },
-      { name: 'Fish caught', value: `🎣 ${u.fish?.caught || 0}`, inline: true },
+      { name: 'Bot Slayer wins', value: `🗡️ ${u.slayer || 0}`, inline: true },
     );
 }
 

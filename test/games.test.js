@@ -1,55 +1,8 @@
 process.env.DATA_DIR = require('path').join(require('os').tmpdir(), 'kinga-test-' + process.pid);
 const test = require('node:test');
 const assert = require('node:assert');
-const wordle = require('../src/games/wordle');
-const words = require('../src/games/words');
-const fish = require('../src/games/fish');
 const safety = require('../src/util/safety');
 const giveaway = require('../src/commands/giveaway');
-
-test('wordle scoring handles duplicate letters', () => {
-  assert.deepStrictEqual(wordle.score('crane', 'crane'), [2, 2, 2, 2, 2]);
-  assert.deepStrictEqual(wordle.score('speed', 'abide'), [0, 0, 1, 0, 1]);
-  // two e's guessed, answer has one e in the right spot
-  assert.deepStrictEqual(wordle.score('geese', 'those'), [0, 0, 0, 2, 2]);
-  assert.deepStrictEqual(wordle.score('allee', 'apple'), [2, 1, 0, 0, 2]);
-});
-
-test('wordle game flow', () => {
-  const g = wordle.newGame({ daily: false });
-  g.answer = 'mouse';
-  assert.ok(wordle.guess(g, 'zzzzz').error);
-  assert.ok(wordle.guess(g, 'abc').error);
-  assert.ok(!wordle.guess(g, 'house').error);
-  assert.ok(wordle.guess(g, 'house').error, 'repeat guess rejected');
-  wordle.guess(g, 'mouse');
-  assert.ok(g.done && g.won);
-  assert.ok(wordle.render(g).length > 1000, 'renders png');
-  assert.match(wordle.emojiGrid(g), /🟩🟩🟩🟩🟩/);
-});
-
-test('all wordle answers are valid 5-letter words and daily word is stable', () => {
-  assert.ok(words.ANSWERS.length > 400);
-  for (const w of words.ANSWERS) assert.match(w, /^[a-z]{5}$/);
-  assert.strictEqual(words.dailyWord('2026-11-04'), words.dailyWord('2026-11-04'));
-  assert.ok(words.isValidGuess('crane'));
-});
-
-test('fishing: catches respect location and luck shifts rarity', () => {
-  for (let n = 0; n < 200; n++) {
-    const c = fish.catchFish({ rodKey: 'twig', locKey: 'pond' });
-    assert.strictEqual(c.location, 'pond');
-    assert.ok(c.value >= 1 && c.kg > 0);
-  }
-  const share = (rod) => {
-    let rare = 0;
-    for (let n = 0; n < 20000; n++) if (['epic', 'legendary', 'mythic'].includes(fish.rollRarity(fish.rodByKey(rod).luck, false).key)) rare++;
-    return rare / 20000;
-  };
-  assert.ok(share('crown') > share('twig') * 2, 'better rod = more rare fish');
-  assert.ok(!fish.canFishAt('twig', 'ocean'));
-  assert.ok(fish.canFishAt('carbon', 'ocean'));
-});
 
 test('safety filter', () => {
   assert.ok(safety.isSafe('your crosshair placement is a war crime'));
@@ -81,4 +34,55 @@ test('admin fallback parser understands simple requests', () => {
   assert.deepStrictEqual(fallbackParse(msg, 'ban <@222222222222222222>')[0].type, 'ban');
   assert.deepStrictEqual(fallbackParse(msg, 'mute <@222222222222222222> 15m')[0], { type: 'timeout', user: target.id, minutes: 15, reason: '15m' });
   assert.strictEqual(fallbackParse(msg, 'how are you'), null);
+});
+
+test('activity launcher builds the right invite and explains failures', async () => {
+  const { ChannelType, InviteTargetType } = require('discord.js');
+  const acts = require('../src/features/activities');
+  assert.strictEqual(acts.find('g-act', 'putt party').id, '763133495793942528');
+  assert.strictEqual(acts.find('g-act', 'sketch').name, 'Sketch Heads');
+  assert.strictEqual(acts.find('g-act', 'nonsense-game'), null);
+
+  let opts;
+  const voice = { type: ChannelType.GuildVoice, toString: () => '#vc', createInvite: async (o) => ((opts = o), { url: 'https://discord.gg/abc' }) };
+  const member = { voice: { channel: voice }, user: { tag: 'a#1' } };
+  const guild = { id: 'g-act', channels: { cache: new Map() } };
+  const res = await acts.launch(guild, member, 'chess');
+  assert.strictEqual(res.url, 'https://discord.gg/abc');
+  assert.strictEqual(opts.targetType, InviteTargetType.EmbeddedApplication);
+  assert.strictEqual(opts.targetApplication, '832012774040141894');
+  assert.strictEqual(acts.panel('g-act').components[0].toJSON().components[0].options.length <= 25, true);
+
+  voice.createInvite = async () => { throw new Error('Unknown Application'); };
+  await assert.rejects(acts.launch(guild, member, 'fishington'), /Activities/);
+
+  const store = require('../src/store');
+  store.guild('g-act').customActivities = { wordle: { name: 'Wordle', id: '123456789012345678', emoji: '🟩' } };
+  assert.strictEqual(acts.find('g-act', 'wordle').id, '123456789012345678');
+});
+
+test('wordle tracker reads pasted results and the official daily recap', () => {
+  const wt = require('../src/features/wordletracker');
+  const now = new Date();
+  const pasted = wt.parse({ author: { id: 'u1', bot: false }, content: 'Wordle 1,234 3/6\n⬛🟨⬛⬛🟩\n🟩🟩⬛🟩🟩\n🟩🟩🟩🟩🟩', createdAt: now });
+  assert.deepStrictEqual(pasted.map((r) => [r.userId, r.score, r.puzzle]), [['u1', '3', '1234']]);
+  assert.strictEqual(wt.parse({ author: { id: 'u1', bot: false }, content: 'I got wordle 3/6 today', createdAt: now }).length, 0, 'needs the emoji grid');
+  const fail = wt.parse({ author: { id: 'u2', bot: false }, content: 'Wordle 1.235 X/6\n⬛⬛⬛⬛⬛', createdAt: now });
+  assert.strictEqual(fail[0].score, 'X');
+
+  const recap = wt.parse({
+    author: { id: 'app', bot: true, username: 'Wordle' },
+    content: 'Your group is on a 4 day streak! 🔥 Here are yesterday\'s results:\n👑 3/6: <@111111111111111111> <@222222222222222222>\n5/6: <@333333333333333333>\nX/6: <@444444444444444444>',
+    createdAt: now, createdTimestamp: now.getTime(),
+  });
+  assert.deepStrictEqual(recap.map((r) => r.score), ['3', '3', '5', 'X']);
+  assert.notStrictEqual(recap[0].day, pasted[0].day, 'recap counts for yesterday');
+
+  // no double counting the same day
+  assert.ok(wt.record('g-w', 'u1', pasted[0]));
+  assert.ok(!wt.record('g-w', 'u1', { ...pasted[0], puzzle: '9999' }));
+  assert.ok(wt.record('g-w', 'u1', { score: '4', day: recap[0].day, puzzle: null }));
+  assert.strictEqual(wt.streak(require('../src/store').user('g-w', 'u1').wordleStats), 2);
+  assert.strictEqual(wt.xpFor('3'), 60);
+  assert.strictEqual(wt.xpFor('X'), 10);
 });

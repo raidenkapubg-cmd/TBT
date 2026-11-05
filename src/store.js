@@ -46,7 +46,7 @@ const GUILD_DEFAULTS = () => ({
   starboard: {},
   giveaways: {},
   tempVcs: {},
-  wordleDaily: {},
+  customActivities: {}, // key -> { name, id, emoji, desc }
   reactionPanels: {},
   channelRules: {}, // channel id -> [{ rule, ...options }]
   tempBans: {}, // user id -> { until, reason }
@@ -81,8 +81,6 @@ function user(guildId, userId) {
       coins: 0,
       lastDaily: 0,
       streak: 0,
-      fish: { rod: 'twig', location: 'pond', bag: {}, caught: 0, index: [] },
-      wordle: { played: 0, won: 0, streak: 0, best: 0, lastDaily: null },
       slayer: 0,
     };
     markDirty();
