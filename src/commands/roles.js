@@ -4,6 +4,25 @@ const store = require('../store');
 const tpl = require('../setup/template');
 const { embed, role, channel, log } = require('../util/helpers');
 
+/** Works out which roles to add/remove for a dropdown pick. Pure, for testing. */
+function planSelect(cat, values, roleFor, has) {
+  const add = [];
+  const remove = [];
+  const chosen = new Set(values);
+  for (const o of cat.options) {
+    const r = roleFor(o.key);
+    if (!r) continue;
+    const owned = has(r);
+    if (cat.single) {
+      if (chosen.has(o.key) && !owned) add.push(r);
+      if (!chosen.has(o.key) && owned && chosen.size) remove.push(r);
+    } else if (chosen.has(o.key)) {
+      (owned ? remove : add).push(r);
+    }
+  }
+  return { add, remove };
+}
+
 async function onSelect(interaction) {
   const catKey = interaction.customId.split(':')[1];
 
@@ -21,16 +40,9 @@ async function onSelect(interaction) {
   const cat = tpl.selfRoleCategories.find((c) => c.key === catKey);
   if (!cat) return interaction.reply({ content: 'This menu is outdated — ask staff to run `/selfroles`.', flags: MessageFlags.Ephemeral });
 
-  const chosen = new Set(interaction.values);
-  const add = [];
-  const remove = [];
-  for (const o of cat.options) {
-    const r = role(interaction.guild, o.key);
-    if (!r) continue;
-    const has = interaction.member.roles.cache.has(r.id);
-    if (chosen.has(o.key) && !has) add.push(r);
-    if (!chosen.has(o.key) && has) remove.push(r);
-  }
+  // Discord resets a dropdown a moment after you pick, so each pick must NOT wipe the others.
+  // Multi-pick menus toggle the picked roles; pick-one menus swap to the picked role.
+  const { add, remove } = planSelect(cat, interaction.values, (key) => role(interaction.guild, key), (r) => interaction.member.roles.cache.has(r.id));
   try {
     if (add.length) await interaction.member.roles.add(add);
     if (remove.length) await interaction.member.roles.remove(remove);
@@ -54,6 +66,7 @@ async function onSelect(interaction) {
   if (add.length) parts.push(`➕ ${add.map((r) => r.name).join(', ')}`);
   if (remove.length) parts.push(`➖ ${remove.map((r) => r.name).join(', ')}`);
   if (!parts.length) parts.push('No changes.');
+  parts.push('\n*Pick a role again to remove it.*');
   if (quip) parts.push(`\n${quip}`);
   if (catKey === 'games' && add.length) parts.push('\n🔓 New game channels unlocked — check the sidebar!');
   return interaction.reply({ content: parts.join('\n'), flags: MessageFlags.Ephemeral });
@@ -112,4 +125,4 @@ const award = {
   },
 };
 
-module.exports = { commands: [selfroles, award], components: { sr: onSelect } };
+module.exports = { commands: [selfroles, award], components: { sr: onSelect }, planSelect };

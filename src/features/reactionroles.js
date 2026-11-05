@@ -7,8 +7,8 @@ const { embed, role, sleep } = require('../util/helpers');
 
 const COLORS = [0xe74c3c, 0x3498db, 0xe67e22, 0x9b59b6, 0xf1c40f];
 
-// Discord sometimes drops the U+FE0F variation selector from emoji names, so compare without it.
-const norm = (e) => String(e || '').replace(/️/g, '');
+// Discord sometimes drops variation selectors / joiners / skin tones from emoji names, so compare without them.
+const norm = (e) => String(e || '').replace(/[︎️‍]|\p{Emoji_Modifier}/gu, '');
 
 function categoryEmbed(cat, idx) {
   return embed(COLORS[idx % COLORS.length])
@@ -61,8 +61,8 @@ async function handle(reaction, user, added) {
 
   const option = cat.options.find((o) => norm(o.emoji) === norm(reaction.emoji.name));
   if (!option) {
-    // Not one of ours — tidy it away
-    if (added) await reaction.users.remove(user.id).catch(() => {});
+    // Not one of our emojis — leave it alone (never yank a member's reaction)
+    if (added) console.warn(`[reactionroles] no role for emoji ${reaction.emoji.name} in ${cat.key}`);
     return;
   }
   const r = role(msg.guild, option.key);
@@ -75,7 +75,11 @@ async function handle(reaction, user, added) {
     return;
   }
 
-  await member.roles.add(r).catch((e) => console.error('[reactionroles] add failed:', e.message));
+  const ok = await member.roles.add(r).then(() => true).catch((e) => {
+    console.error(`[reactionroles] couldn't give ${r.name}: ${e.message} — is the King A role above it?`);
+    return false;
+  });
+  if (!ok) return;
 
   if (cat.single) {
     // Only one allowed: drop the other roles and the other reactions in this category

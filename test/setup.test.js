@@ -146,5 +146,28 @@ test('reaction roles: add, remove, and pick-one swapping', async () => {
   assert.ok(removedReactions.includes('🖥️'), 'old reaction removed');
 
   await react(side, '😂', true);
-  assert.ok(removedReactions.includes('stray'), 'unknown emoji removed');
+  assert.ok(!removedReactions.includes('stray'), 'unknown emoji left alone');
+  assert.ok(has.has('r-mob'), 'roles untouched by unknown emoji');
+});
+
+test('dropdown picks toggle instead of wiping the category', () => {
+  const tpl = require('../src/setup/template');
+  const { planSelect } = require('../src/commands/roles');
+  const games = tpl.selfRoleCategories.find((c) => c.key === 'games');
+  const side = tpl.selfRoleCategories.find((c) => c.key === 'side');
+  const owned = new Set(['g_valorant']);
+  const roleFor = (k) => ({ id: k });
+  const has = (r) => owned.has(r.id);
+
+  // Already has Valorant, picks BGMI from the reset menu → BGMI added, Valorant kept
+  let p = planSelect(games, ['g_bgmi'], roleFor, has);
+  assert.deepStrictEqual(p.add.map((r) => r.id), ['g_bgmi']);
+  assert.deepStrictEqual(p.remove, []);
+  // Picking Valorant again removes it
+  p = planSelect(games, ['g_valorant'], roleFor, has);
+  assert.deepStrictEqual(p.remove.map((r) => r.id), ['g_valorant']);
+  // Pick-one: switching side swaps
+  owned.add('team_pc');
+  p = planSelect(side, ['team_mobile'], roleFor, has);
+  assert.deepStrictEqual([p.add.map((r) => r.id), p.remove.map((r) => r.id)], [['team_mobile'], ['team_pc']]);
 });

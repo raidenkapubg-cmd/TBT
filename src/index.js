@@ -18,7 +18,7 @@ const client = new Client({
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildModeration,
   ],
-  partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User],
   allowedMentions: { parse: ['users'], repliedUser: true },
 });
 
