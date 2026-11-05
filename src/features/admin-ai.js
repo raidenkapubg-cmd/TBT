@@ -65,7 +65,7 @@ Games (Discord Activities in voice channels):
 Reports:
 - report {kind: "server"|"member"|"warnings"|"bans"|"rules"|"levels", user}
 Rebuild:
-- setup {fresh}
+- setup {fresh}   // also for "reorganize / tidy / clean up the server" (points them to /setup2)
 
 Notes: "remove @user" (from the server) = kick. To make a brand-new custom channel with behaviour, use create_channel then set_channel_rule in the same list.
 "this channel"/"here" = the current channel. Chain as many actions as needed, in order.`;
@@ -146,7 +146,7 @@ async function execute(member, list) {
   const results = [];
   for (const a of list) {
     if (a.type === 'setup') {
-      results.push('🏗️ Use `/setup` to (re)build the server — it shows a full preview and a confirm button.');
+      results.push('🏗️ Use `/setup2` to reorganize the server without wiping it (it shows a full plan first), or `/setup` to build from scratch.');
       continue;
     }
     try {

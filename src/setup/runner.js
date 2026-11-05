@@ -174,7 +174,11 @@ async function guildSettings(guild, g, report) {
       systemChannel: null,
     })
     .catch((e) => report.warnings.push(`Server settings: ${e.message}`));
+  await safeSettings(guild, report);
+}
 
+/** Additive-only settings, safe on an established server: activity permissions + AutoMod rules. */
+async function safeSettings(guild, report) {
   // Official Discord games (Wordle, Putt Party…) need these on @everyone
   try {
     const ev = guild.roles.everyone;
@@ -313,4 +317,4 @@ async function runSetup(guild, { fresh, onProgress = async () => {} }) {
   return report;
 }
 
-module.exports = { runSetup };
+module.exports = { runSetup, overwritesFor, allRoleSpecs, safeSettings, postContent };

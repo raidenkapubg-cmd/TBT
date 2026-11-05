@@ -100,4 +100,122 @@ async function onSetup(interaction) {
   }
 }
 
-module.exports = { commands: [setup], components: { setup: onSetup } };
+// ================================================================= /setup2 (reorganize, no wipe)
+const { AttachmentBuilder } = require('discord.js');
+const reorganize = require('../setup/reorganize');
+const pending2 = new Map(); // token -> { opts, userId }
+
+const splitNames = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Boolean);
+
+const setup2 = {
+  data: new SlashCommandBuilder()
+    .setName('setup2')
+    .setDescription('Reorganize the server WITHOUT wiping: tidy existing channels, hide unused ones, add what\'s missing')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addStringOption((o) =>
+      o.setName('mode').setDescription('What to do').addChoices(
+        { name: 'Preview, then apply (default)', value: 'run' },
+        { name: 'Undo the last /setup2', value: 'undo' },
+      ),
+    )
+    .addStringOption((o) => o.setName('hide').setDescription('Extra channels to hide, comma separated (e.g. f1, type-rift-contest)'))
+    .addStringOption((o) => o.setName('keep').setDescription('Channels to keep exactly as they are, comma separated'))
+    .addIntegerOption((o) => o.setName('inactive_days').setDescription('Hide unmatched public channels quiet for this many days (default 14)').setMinValue(1).setMaxValue(365))
+    .addBooleanOption((o) => o.setName('keep_names').setDescription('Don\'t rename matched channels (only move + fix permissions)')),
+  async execute(i) {
+    if (!i.memberPermissions.has(PermissionFlagsBits.Administrator)) return i.reply({ content: 'Only admins can run this.', flags: MessageFlags.Ephemeral });
+    if (!i.guild.members.me.permissions.has(PermissionFlagsBits.Administrator)) return i.reply({ content: '❌ I need the **Administrator** permission.', flags: MessageFlags.Ephemeral });
+    const mode = i.options.getString('mode') || 'run';
+    const token = `${i.id}`;
+
+    if (mode === 'undo') {
+      const b = require('../store').guild(i.guild.id).setup2Backup;
+      if (!b) return i.reply({ content: 'There\'s no /setup2 to undo.', flags: MessageFlags.Ephemeral });
+      pending2.set(token, { undo: true, userId: i.user.id });
+      return i.reply({
+        embeds: [embed(config.color.warn).setTitle('↩️ Undo /setup2?').setDescription(`This puts back the names, categories and permissions of **${Object.keys(b.channels).length}** channels, un-hides archived ones, and deletes the **${b.createdChannels.length}** channels and **${b.createdRoles.length}** roles that /setup2 created (<t:${Math.floor(b.at / 1000)}:R>).`)],
+        components: [new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId(`setup2:go:${token}`).setLabel('Undo').setEmoji('↩️').setStyle(ButtonStyle.Danger),
+          new ButtonBuilder().setCustomId(`setup2:cancel:${token}`).setLabel('Cancel').setStyle(ButtonStyle.Secondary),
+        )],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    const opts = {
+      hide: splitNames(i.options.getString('hide')),
+      keep: splitNames(i.options.getString('keep')),
+      inactiveDays: i.options.getInteger('inactive_days') ?? 14,
+      keepNames: !!i.options.getBoolean('keep_names'),
+    };
+    await i.deferReply({ flags: MessageFlags.Ephemeral });
+    await i.guild.channels.fetch();
+    await i.guild.roles.fetch();
+    const p = reorganize.plan(i.guild, opts);
+    pending2.set(token, { opts, userId: i.user.id });
+    setTimeout(() => pending2.delete(token), 15 * 60000).unref();
+    const list = (arr, f, n = 8) => (arr.length ? arr.slice(0, n).map(f).join('\n') + (arr.length > n ? `\n…and ${arr.length - n} more` : '') : '—');
+    const e = embed(config.color.info)
+      .setTitle('🧭 /setup2 plan — nothing is wiped')
+      .setDescription('Full list in the attached **plan.txt**. Not happy with it? Re-run with `hide:` / `keep:` / `keep_names:`. You can always `/setup2 mode:Undo`.')
+      .addFields(
+        { name: `✏️ Tidy & reuse (${p.reuse.length})`, value: list(p.reuse, (r) => `\`${r.ch.name}\` → \`${r.newName}\``).slice(0, 1024) },
+        { name: `🗄️ Hide in archive (${p.hide.length})`, value: list(p.hide, (h) => `\`${h.ch.name}\` — ${h.why}`).slice(0, 1024) },
+        { name: `📌 Keep as is (${p.keep.length})`, value: list(p.keep, (k) => `\`${k.ch.name}\` — ${k.why}`).slice(0, 1024) },
+        { name: `➕ Create (${p.create.length} channels · ${p.catCreate.length} categories)`, value: list(p.create, (c) => `\`${c.spec.name}\``, 10).slice(0, 1024) },
+        { name: '🎭 Roles', value: `Reuse **${p.roleReuse.length}** (left unchanged) · create **${p.roleCreate.length}**` },
+      );
+    const file = new AttachmentBuilder(Buffer.from(reorganize.planText(p), 'utf8'), { name: 'plan.txt' });
+    return i.editReply({
+      embeds: [e],
+      files: [file],
+      components: [new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId(`setup2:go:${token}`).setLabel('Apply').setEmoji('✅').setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId(`setup2:cancel:${token}`).setLabel('Cancel').setStyle(ButtonStyle.Secondary),
+      )],
+    });
+  },
+};
+
+async function onSetup2(interaction) {
+  const [, action, token] = interaction.customId.split(':');
+  const job = pending2.get(token);
+  if (action === 'cancel') {
+    pending2.delete(token);
+    return interaction.update({ content: 'Cancelled.', embeds: [], components: [], files: [] });
+  }
+  if (!job) return interaction.reply({ content: 'This plan expired — run `/setup2` again.', flags: MessageFlags.Ephemeral });
+  if (job.userId !== interaction.user.id) return interaction.reply({ content: 'Only the person who ran it can confirm.', flags: MessageFlags.Ephemeral });
+  if (running.has(interaction.guild.id)) return interaction.reply({ content: 'A setup is already running!', flags: MessageFlags.Ephemeral });
+  pending2.delete(token);
+  running.add(interaction.guild.id);
+  await interaction.update({ content: '⏳ Starting…', embeds: [], components: [], files: [] });
+  const progress = (t) => interaction.editReply({ content: t }).catch(() => {});
+  try {
+    if (job.undo) {
+      const r = await reorganize.undo(interaction.guild, progress);
+      await interaction.editReply({ content: '', embeds: [embed(config.color.good).setTitle('↩️ Undone').setDescription(`Restored **${r.restored}** channels · removed **${r.deleted}** created channels · removed **${r.rolesDeleted}** created roles${r.warnings.length ? `\n\n⚠️ ${r.warnings.slice(0, 8).join('\n')}` : ''}`)] });
+    } else {
+      const { report: r } = await reorganize.apply(interaction.guild, job.opts, progress);
+      await interaction.editReply({
+        content: '',
+        embeds: [embed(config.color.good).setTitle('✅ Server reorganized — nothing wiped').setDescription([
+          `✏️ Tidied **${r.reused}** existing channels · ➕ created **${r.created}** · 🗄️ hid **${r.hidden}** · 📌 kept **${r.kept}** as is`,
+          `🎭 Reused **${r.rolesReused}** roles · created **${r.rolesCreated}**${r.categoriesRemoved ? ` · removed ${r.categoriesRemoved} empty categories` : ''}`,
+          r.warnings.length ? `\n⚠️ **Warnings**\n${r.warnings.slice(0, 8).map((w) => `• ${w}`).join('\n')}` : '',
+          '',
+          '• Hidden channels are in **🗄️ ARCHIVE** (staff can still see them). Move one back by dragging it, or `/setup2 mode:Undo`.',
+          '• Your existing rules / self-roles channels were kept as they were. Run `/selfroles` there if you want King A\'s reaction-role panel.',
+          '• If another bot also runs server-stats or welcome messages, remove it so they don\'t fight over the same channels.',
+        ].filter(Boolean).join('\n'))],
+      });
+    }
+  } catch (err) {
+    console.error('[setup2]', err);
+    await interaction.editReply({ content: `❌ Stopped: ${err.message}\nAnything already changed can be reverted with \`/setup2 mode:Undo\`.` }).catch(() => {});
+  } finally {
+    running.delete(interaction.guild.id);
+  }
+}
+
+module.exports = { commands: [setup, setup2], components: { setup: onSetup, setup2: onSetup2 } };
